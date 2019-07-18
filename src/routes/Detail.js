@@ -41,16 +41,16 @@ const Detail = ({ loadApi, detail, match }) => {
                                 { params.apiName }
                             </BreadcrumbItem>
                         </Breadcrumb>
-                        <Level>
-                            <LevelItem>
+                        <Level className="ins-c-docs__api-detail">
+                            <LevelItem className="ins-c-docs__api-detail-info">
                                 {
                                     detail.loaded ? `Detail of ${detail.spec.info.title}` :
-                                        <Skeleton size={ SkeletonSize.xs } />
+                                        <Skeleton size={ SkeletonSize.md } />
                                 }
                             </LevelItem>
                             <LevelItem>
                                 <Split gutter="sm">
-                                    <SplitItem>
+                                    <SplitItem className="ins-c-docs__api-detail-info">
                                         {
                                             detail.loaded ? <a
                                                 href={ `${location.origin}${detail.latest}` }
@@ -59,17 +59,17 @@ const Detail = ({ loadApi, detail, match }) => {
                                             >
                                                 Open Raw <ExternalLinkAltIcon size="sm" />
                                             </a> :
-                                                <Skeleton size={ SkeletonSize.xs } />
+                                                <Skeleton size={ SkeletonSize.mdmd } />
                                         }
                                     </SplitItem>
-                                    <SplitItem>
+                                    <SplitItem className="ins-c-docs__api-detail-info">
                                         { detail.loaded ? <Button
                                             onClick={ () => onModalToggle(true) }
                                             variant={ ButtonVariant.secondary }
                                         >
                                                 Show JSON
                                         </Button> :
-                                            <Skeleton size={ SkeletonSize.xs } />
+                                            <Skeleton size={ SkeletonSize.md } />
                                         }
                                     </SplitItem>
                                 </Split>

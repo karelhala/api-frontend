@@ -5,3 +5,16 @@
 .ins-c-api__list-item {
     cursor: pointer;
 }
+
+.ins-c-docs__api {
+    .pf-c-table {
+        cursor: pointer;
+        color: var(--pf-global--link--Color);
+    }
+}
+.ins-c-docs__api-detail .ins-c-docs__api-detail-info {
+    min-width: 100px;
+    a {
+        vertical-align: text-top;
+    }
+}
