@@ -1,6 +1,5 @@
 import { applyReducerHash } from '@redhat-cloud-services/frontend-components-utilities/files/ReducerRegistry';
 import * as ACTIONS from './actionTypes';
-import { versionMapper } from '../api/constants';
 
 const defaultState = { loaded: false };
 const disabledApis = [ '/api/webhooks', '/api/aiops-insights-clustering' ];
@@ -12,8 +11,8 @@ function dataLoaded(state, { payload }) {
         .services
         .filter(service => !disabledApis.includes(service))
         .map(service => ({
-            service,
-            version: versionMapper[`${service.replace('/api/', '')}`] || 'v1'
+            ...service,
+            version: service.api.versions[0]
         })),
         loaded: true
     };
@@ -35,5 +34,6 @@ export const services = applyReducerHash({
 
 export const detail = applyReducerHash({
     [`${ACTIONS.LOAD_ONE_API}_FULFILLED`]: detailLoaded,
-    [`${ACTIONS.LOAD_ONE_API}_PENDING`]: () => ({ loaded: false })
+    [`${ACTIONS.LOAD_ONE_API}_PENDING`]: () => ({ loaded: false }),
+    [`${ACTIONS.LOAD_ONE_API}_REJECTED`]: () => ({ loaded: true, error: true })
 }, defaultState);

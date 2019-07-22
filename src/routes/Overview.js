@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { withRouter } from 'react-router';
 import {
     PageHeader,
@@ -7,68 +8,12 @@ import {
     SkeletonTable,
     TableToolbar
 } from '@redhat-cloud-services/frontend-components';
-import { Badge, Pagination } from '@patternfly/react-core';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
-import {
-    Table,
-    TableHeader,
-    TableBody,
-    sortable,
-    TableVariant,
-    SortByDirection,
-    cellWidth
-} from '@patternfly/react-table';
+import { Pagination, Level, LevelItem } from '@patternfly/react-core';
+import { Table, TableHeader, TableBody, TableVariant } from '@patternfly/react-table';
 import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import { onLoadApis } from '../store/actions';
-
-const indexToKey = [ 'service', 'version' ];
-
-function buildRows(sortBy, { page, perPage }, rows) {
-    return rows.sort((curr, next) => {
-        if (sortBy.index !== undefined) {
-            const key = indexToKey[sortBy.index];
-            if (sortBy.direction === SortByDirection.desc) {
-                return curr[key] < next[key] ? 1 :
-                    (next[key] < curr[key]) ? -1 : 0;
-            } else {
-                return curr[key] > next[key] ? 1 :
-                    (next[key] > curr[key]) ? -1 : 0;
-            }
-        }
-
-        return 0;
-    })
-    .slice((page - 1) * perPage, page * perPage)
-    .map(({ service, version }) => [
-        {
-            title: service.replace('/api/', ''),
-            value: service
-        },
-        { title: <Badge>{ version }</Badge> },
-        {
-            title: (
-                <a
-                    href={ `${location.origin}${service}/${version}/openapi.json` }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={ e => {
-                        e.preventDefault();
-                        window.open(`${location.origin}${service}/${version}/openapi.json`, '_newtab');
-                    } }
-                >
-                    Open Raw <ExternalLinkAltIcon size="sm" />
-                </a>
-            )
-        }
-    ]);
-}
-
-const columns = [
-    { title: 'API endpoint', transforms: [ sortable ]},
-    { title: 'API version', transforms: [ sortable, cellWidth(25) ]},
-    { title: 'Action', transforms: [ cellWidth(10) ]}
-];
+import { SimpleTableFilter } from '@redhat-cloud-services/frontend-components';
+import { filterRows, buildRows, columns } from '../Utilities/overviewRows';
 
 const Overview = ({ loadApis, services, history }) => {
     useEffect(() => {
@@ -79,6 +24,8 @@ const Overview = ({ loadApis, services, history }) => {
         perPage: 50,
         page: 1
     });
+    const [ filter, onChangeFilter ] = useState('');
+    const filtered = filter && services.endpoints.filter(row => filterRows(row, filter));
     return (
         <React.Fragment>
             <PageHeader className="pf-m-light">
@@ -89,19 +36,35 @@ const Overview = ({ loadApis, services, history }) => {
                     <TableToolbar>
                         {
                             services.loaded ?
-                                <Pagination
-                                    itemCount={ services.endpoints.length }
-                                    perPage={ pageSettings.perPage }
-                                    page={ pageSettings.page }
-                                    onSetPage={ (_e, page) => onPaginate({
-                                        ...pageSettings,
-                                        page
-                                    }) }
-                                    onPerPageSelect={ (_event, perPage) => onPaginate({
-                                        ...pageSettings,
-                                        perPage
-                                    }) }
-                                /> :
+                                <Level className="ins-c-docs__api-overview-toolbar">
+                                    <LevelItem>
+                                        <SimpleTableFilter
+                                            onFilterChange={ (value) => {
+                                                onPaginate({
+                                                    ...pageSettings,
+                                                    page: 1
+                                                });
+                                                onChangeFilter(value);
+                                            } }
+                                            buttonTitle={ null }
+                                        />
+                                    </LevelItem>
+                                    <LevelItem>
+                                        <Pagination
+                                            itemCount={ (filtered || services.endpoints).length }
+                                            perPage={ pageSettings.perPage }
+                                            page={ pageSettings.page }
+                                            onSetPage={ (_e, page) => onPaginate({
+                                                ...pageSettings,
+                                                page
+                                            }) }
+                                            onPerPageSelect={ (_event, perPage) => onPaginate({
+                                                ...pageSettings,
+                                                perPage
+                                            }) }
+                                        />
+                                    </LevelItem>
+                                </Level> :
                                 `loading`
                         }
                     </TableToolbar>
@@ -113,7 +76,7 @@ const Overview = ({ loadApis, services, history }) => {
                                 sortBy={ sortBy }
                                 onSort={ (_e, index, direction) => onSortBy({ index, direction }) }
                                 cells={ columns }
-                                rows={ buildRows(sortBy, pageSettings, services.endpoints) }
+                                rows={ buildRows(sortBy, pageSettings, filtered || services.endpoints) }
                             >
                                 <TableHeader />
                                 <TableBody onRowClick={ (_event, data) => {
@@ -131,7 +94,7 @@ const Overview = ({ loadApis, services, history }) => {
                             <Pagination
                                 variant="bottom"
                                 dropDirection="up"
-                                itemCount={ services.endpoints.length }
+                                itemCount={ (filtered || services.endpoints).length }
                                 perPage={ pageSettings.perPage }
                                 page={ pageSettings.page }
                                 onSetPage={ (_e, page) => onPaginate({

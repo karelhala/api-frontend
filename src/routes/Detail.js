@@ -41,40 +41,44 @@ const Detail = ({ loadApi, detail, match }) => {
                                 { params.apiName }
                             </BreadcrumbItem>
                         </Breadcrumb>
-                        <Level className="ins-c-docs__api-detail">
-                            <LevelItem className="ins-c-docs__api-detail-info">
-                                {
-                                    detail.loaded ? `Detail of ${detail.spec.info.title}` :
-                                        <Skeleton size={ SkeletonSize.md } />
-                                }
-                            </LevelItem>
-                            <LevelItem>
-                                <Split gutter="sm">
-                                    <SplitItem className="ins-c-docs__api-detail-info">
+                        <React.Fragment>
+                            { detail.loaded && !detail.error &&
+                                <Level className="ins-c-docs__api-detail">
+                                    <LevelItem className="ins-c-docs__api-detail-info">
                                         {
-                                            detail.loaded ? <a
-                                                href={ `${location.origin}${detail.latest}` }
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                Open Raw <ExternalLinkAltIcon size="sm" />
-                                            </a> :
-                                                <Skeleton size={ SkeletonSize.mdmd } />
+                                            detail.loaded ? `Detail of ${detail.spec.info.title}` :
+                                                <Skeleton size={ SkeletonSize.md } />
                                         }
-                                    </SplitItem>
-                                    <SplitItem className="ins-c-docs__api-detail-info">
-                                        { detail.loaded ? <Button
-                                            onClick={ () => onModalToggle(true) }
-                                            variant={ ButtonVariant.secondary }
-                                        >
-                                                Show JSON
-                                        </Button> :
-                                            <Skeleton size={ SkeletonSize.md } />
-                                        }
-                                    </SplitItem>
-                                </Split>
-                            </LevelItem>
-                        </Level>
+                                    </LevelItem>
+                                    <LevelItem>
+                                        <Split gutter="sm">
+                                            <SplitItem className="ins-c-docs__api-detail-info">
+                                                {
+                                                    detail.loaded && !detail.error ? <a
+                                                        href={ `${location.origin}${detail.latest}` }
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        Open Raw <ExternalLinkAltIcon size="sm" />
+                                                    </a> :
+                                                        <Skeleton size={ SkeletonSize.mdmd } />
+                                                }
+                                            </SplitItem>
+                                            <SplitItem className="ins-c-docs__api-detail-info">
+                                                { detail.loaded ? <Button
+                                                    onClick={ () => onModalToggle(true) }
+                                                    variant={ ButtonVariant.secondary }
+                                                >
+                                                    Show JSON
+                                                </Button> :
+                                                    <Skeleton size={ SkeletonSize.md } />
+                                                }
+                                            </SplitItem>
+                                        </Split>
+                                    </LevelItem>
+                                </Level> }
+                        </React.Fragment>
+
                     </React.Fragment>
                 } />
             </PageHeader>
