@@ -7,38 +7,36 @@ import {
     EmptyStateBody,
     EmptyStateVariant
 } from '@patternfly/react-core';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { sortable, SortByDirection, cellWidth } from '@patternfly/react-table';
 import { EmptyTable } from '@redhat-cloud-services/frontend-components';
+import { oneApi, generateUrl } from '../api';
+import fileDownload from 'js-file-download';
+import JSZip from 'jszip';
 
 const indexToKey = [ 'title', 'appName', 'version' ];
 
 export const columns = [
     { title: 'Application name', transforms: [ sortable ]},
     { title: 'API endpoint', transforms: [ sortable ]},
-    { title: 'API version', transforms: [ sortable, cellWidth(10) ]},
-    { title: 'Action', transforms: [ cellWidth(10) ]}
+    { title: 'API version', transforms: [ sortable, cellWidth(10) ]}
 ];
 
-export const rowMapper = (title, appName, version) => ([
-    {
-        title,
-        value: appName
-    },
-    `/api/${appName}`,
-    { title: <Badge>{ version }</Badge> },
-    {
-        title: (
-            <a
-                href={ `${location.origin}/api/${appName}/${version}/openapi.json` }
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Open Raw <ExternalLinkAltIcon size="sm" />
-            </a>
-        )
-    }
-]);
+export const rowMapper = (title, appName, version, selectedRows = []) => ({
+    selected: selectedRows[appName] && selectedRows[appName].isSelected,
+    cells: [
+        {
+            title,
+            value: appName,
+            props: {
+                'data-position': 'title'
+            }
+        },
+        `/api/${appName}`,
+        {
+            title: <Badge>{ version }</Badge>,
+            value: version
+        }
+    ]});
 
 export const emptyTable = [{
     cells: [{
@@ -74,7 +72,7 @@ export function sortRows(curr, next, key, isDesc) {
     return 0;
 }
 
-export function buildRows(sortBy, { page, perPage }, rows) {
+export function buildRows(sortBy, { page, perPage }, rows, selectedRows) {
     if (rows.length > 0) {
         return rows.sort((curr, next) =>
             sortRows(
@@ -84,7 +82,7 @@ export function buildRows(sortBy, { page, perPage }, rows) {
                 sortBy.direction === SortByDirection.desc)
         )
         .slice((page - 1) * perPage, page * perPage)
-        .map(({ title, appName, version }) => rowMapper(title, appName, version));
+        .map(({ title, appName, version }) => rowMapper(title, appName, version, selectedRows));
     }
 
     return emptyTable;
@@ -94,4 +92,64 @@ export function filterRows(row, filter) {
     return indexToKey.some(key => row[key] &&
         row[key].toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) !== -1
     );
+}
+
+export function downloadFile(appName, appVersion) {
+    oneApi({ name: appName, version: appVersion })
+    .then(data => {
+        delete data.latest;
+        delete data.name;
+        fileDownload(data, `${appName}-openapi.json`);
+    });
+}
+
+export const actions = [
+    {
+        title: 'Download JSON',
+        onClick: (_event, _rowKey, data) => {
+            const appName = data.cells[0].value;
+            const appVersion = data.cells[2].value;
+            downloadFile(appName, appVersion);
+        }
+    },
+    {
+        title: 'Show raw JSON',
+        onClick: (_event, _rowKey, data) => {
+            const appName = data.cells[0].value;
+            const appVersion = data.cells[2].value;
+            window.open(generateUrl(appName, appVersion), '_blank');
+        }
+    }
+];
+
+export function multiDownload(selectedRows = {}, onError) {
+    const zip = new JSZip();
+    const allFiles = Object.values(selectedRows || {})
+    .filter(({ isSelected }) => isSelected)
+    .map(async ({ appName, version }) => {
+        try {
+            return await oneApi({ name: appName, version });
+        } catch (e) {
+            onError(e);
+        }
+    });
+
+    Promise.all(allFiles).then(files => {
+        if (files && files.length > 1) {
+            files.map(({ name, ...file } = {}) => {
+                if (name) {
+                    delete file.latest;
+                    zip.file(`${name}-openapi.json`, JSON.stringify(file));
+                }
+            });
+            zip.generateAsync({ type: 'blob' })
+            .then((content) => fileDownload(content, `cloud-services-openapi.zip`));
+        } else if (files && files.length === 1) {
+            const { name, ...file } = files[0] || {};
+            if (name) {
+                delete file.latest;
+                fileDownload(file, `${name}-openapi.json`);
+            }
+        }
+    });
 }

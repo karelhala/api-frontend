@@ -1,10 +1,13 @@
 import { versionMapper, DEFAULT_PREFIX } from './constants';
 import instance from '@redhat-cloud-services/frontend-components-utilities/files/interceptors';
 import { safeLoad } from 'js-yaml';
+export { default as instance } from '@redhat-cloud-services/frontend-components-utilities/files/interceptors';
 
 export const apiList = () => {
     return instance.get(`/${DEFAULT_PREFIX}`);
 };
+
+export const generateUrl = (appName, appVersion) => `/${DEFAULT_PREFIX}/${appName}/${appVersion}/openapi.json`;
 
 export const activeApi = () => instance.get('https://raw.githubusercontent.com/'
     + 'RedHatInsights/cloud-services-config/master/main.yml')
@@ -19,9 +22,10 @@ export const activeApi = () => instance.get('https://raw.githubusercontent.com/'
 }));
 
 export const oneApi = ({ name, version = 'v1' }) => {
-    const url = `/${DEFAULT_PREFIX}/${name}/${versionMapper[name] || version}/openapi.json`;
+    const url = generateUrl(name, versionMapper[name] || version);
     return instance.get(url).then(data => ({
         ...data,
-        latest: url
+        latest: url,
+        name
     }));
 };

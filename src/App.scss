@@ -3,6 +3,14 @@
 @import "~@redhat-cloud-services/frontend-components/index.css";
 @import '~@redhat-cloud-services/frontend-components-notifications/index.css';
 
+.info__contact {
+    display: none;
+}
+
+.auth-wrapper {
+    display: none !important;
+}
+
 .ins-c-api__list-item {
     cursor: pointer;
 }
@@ -11,7 +19,7 @@
     .ins-c-docs__api-overview-toolbar {
         width: 100%;
     }
-    .pf-c-table {
+    .pf-c-table tbody td:nth-child(2) {
         cursor: pointer;
         color: var(--pf-global--link--Color);
     }

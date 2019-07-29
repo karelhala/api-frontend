@@ -8,14 +8,22 @@ import {
     SkeletonTable,
     TableToolbar
 } from '@redhat-cloud-services/frontend-components';
-import { Pagination, Level, LevelItem } from '@patternfly/react-core';
+import {
+    Pagination,
+    Level,
+    LevelItem,
+    Dropdown,
+    DropdownItem,
+    KebabToggle
+} from '@patternfly/react-core';
 import { Table, TableHeader, TableBody, TableVariant } from '@patternfly/react-table';
 import { connect } from 'react-redux';
-import { onLoadApis } from '../store/actions';
+import { onLoadApis, onSelectRow } from '../store/actions';
 import { SimpleTableFilter } from '@redhat-cloud-services/frontend-components';
-import { filterRows, buildRows, columns } from '../Utilities/overviewRows';
+import { filterRows, buildRows, columns, actions, multiDownload } from '../Utilities/overviewRows';
+import { addNotification } from '@redhat-cloud-services/frontend-components-notifications';
 
-const Overview = ({ loadApis, services, history }) => {
+const Overview = ({ loadApis, services, history, selectRow, onError }) => {
     useEffect(() => {
         loadApis();
     }, []);
@@ -25,7 +33,11 @@ const Overview = ({ loadApis, services, history }) => {
         page: 1
     });
     const [ filter, onChangeFilter ] = useState('');
+    const [ isOpen, onOpenToggle ] = useState(false);
     const filtered = filter && services.endpoints.filter(row => filterRows(row, filter));
+    const rows = services.loaded ?
+        buildRows(sortBy, pageSettings, filtered || services.endpoints, services.selectedRows) :
+        [];
     return (
         <React.Fragment>
             <PageHeader className="pf-m-light">
@@ -38,16 +50,47 @@ const Overview = ({ loadApis, services, history }) => {
                             services.loaded ?
                                 <Level className="ins-c-docs__api-overview-toolbar">
                                     <LevelItem>
-                                        <SimpleTableFilter
-                                            onFilterChange={ (value) => {
-                                                onPaginate({
-                                                    ...pageSettings,
-                                                    page: 1
-                                                });
-                                                onChangeFilter(value);
-                                            } }
-                                            buttonTitle={ null }
-                                        />
+                                        <Level>
+                                            <LevelItem>
+                                                <SimpleTableFilter
+                                                    onFilterChange={ (value) => {
+                                                        onPaginate({
+                                                            ...pageSettings,
+                                                            page: 1
+                                                        });
+                                                        onChangeFilter(value);
+                                                    } }
+                                                    buttonTitle={ null }
+                                                />
+                                            </LevelItem>
+                                            <LevelItem>
+                                                <Dropdown
+                                                    dropdownItems={ [
+                                                        <DropdownItem
+                                                            key="download"
+                                                            component="button"
+                                                            onClick={ () => {
+                                                                multiDownload(services.selectedRows, onError);
+                                                            } }
+                                                        >
+                                                            Download selected
+                                                        </DropdownItem>
+                                                    ] }
+                                                    isOpen={ isOpen }
+                                                    onSelect={ () => onOpenToggle(!isOpen) }
+                                                    toggle={
+                                                        <KebabToggle
+                                                            onToggle={ (isOpen) => onOpenToggle(isOpen) }
+                                                            isDisabled={ !services.selectedRows ||
+                                                                Object.values(services.selectedRows || {})
+                                                                .map(({ isSelected }) => isSelected)
+                                                                .filter(Boolean).length === 0 }
+                                                        />
+                                                    }
+                                                    isPlain
+                                                />
+                                            </LevelItem>
+                                        </Level>
                                     </LevelItem>
                                     <LevelItem>
                                         <Pagination
@@ -76,12 +119,22 @@ const Overview = ({ loadApis, services, history }) => {
                                 sortBy={ sortBy }
                                 onSort={ (_e, index, direction) => onSortBy({ index, direction }) }
                                 cells={ columns }
-                                rows={ buildRows(sortBy, pageSettings, filtered || services.endpoints) }
+                                rows={ rows }
+                                actions={ actions }
+                                onSelect={ (_e, isSelected, rowKey) => {
+                                    if (rowKey === -1) {
+                                        selectRow(isSelected, rows);
+                                    } else {
+                                        selectRow(isSelected, rows[rowKey]);
+                                    }
+                                } }
                             >
                                 <TableHeader />
-                                <TableBody onRowClick={ (_event, data) => {
-                                    if (!event.target.matches('a') && data && data[0] && data[0].value) {
-                                        history.push(`/${data[0].value.replace('/api/', '')}`);
+                                <TableBody onRowClick={ (event, data) => {
+                                    if (event.target.getAttribute('data-position') === 'title') {
+                                        history.push(`/${data.cells[0].value.replace('/api/', '')}`);
+                                    } else if (!event.target.matches('input')) {
+                                        selectRow(!data.selected, data);
                                     }
                                 } }/>
                             </Table> :
@@ -116,20 +169,37 @@ const Overview = ({ loadApis, services, history }) => {
 
 Overview.propTypes = {
     loadApis: PropTypes.func,
+    onError: PropTypes.func,
     services: PropTypes.shape({
-        loaded: PropTypes.bool
+        loaded: PropTypes.bool,
+        selectedRows: PropTypes.shape({
+            isSelected: PropTypes.bool
+        })
     }),
     history: PropTypes.shape({
         push: PropTypes.func
-    })
+    }),
+    selectRow: PropTypes.func
 };
 Overview.defaultProps = {
     loadApis: () => undefined,
+    selectRow: () => undefined,
+    onError: () => undefined,
     services: {
-        loaded: false
+        loaded: false,
+        selectedRows: {}
     }
 };
 
 export default withRouter(connect(({ services }) => ({
     services
-}), (dispatch) => ({ loadApis: () => dispatch(onLoadApis()) }))(Overview));
+}), (dispatch) => ({
+    loadApis: () => dispatch(onLoadApis()),
+    selectRow: (isSelected, row) => dispatch(onSelectRow({ isSelected, row })),
+    onError: error => dispatch(addNotification({
+        variant: 'danger',
+        title: 'Server error',
+        description: error,
+        dismissable: true
+    }))
+}))(Overview));
