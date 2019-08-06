@@ -10,7 +10,7 @@ class App extends Component {
 
     componentDidMount () {
         insights.chrome.init();
-        insights.chrome.identifyApp('api');
+        insights.chrome.identifyApp('api-docs');
     }
 
     componentWillUnmount () {

@@ -93,6 +93,6 @@
     "nightly": "npm run deploy"
   },
   "insights": {
-    "appname": "api"
+    "appname": "api-docs"
   }
 }
