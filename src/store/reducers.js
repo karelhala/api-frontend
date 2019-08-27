@@ -2,17 +2,20 @@ import { applyReducerHash } from '@redhat-cloud-services/frontend-components-uti
 import * as ACTIONS from './actionTypes';
 
 const defaultState = { loaded: false, selectedRows: {}};
-const disabledApis = [ '/api/webhooks', '/api/aiops-insights-clustering' ];
+const disabledApis = [ '/api/aiops-insights-clustering' ];
 
 function dataLoaded(state, { payload }) {
     return {
         ...state,
         endpoints: payload && payload
         .services
-        .filter(service => !disabledApis.includes(service))
+        .filter(service => !disabledApis.includes(service) &&
+            (!service.api.isBeta || insights.chrome.isBeta())
+        )
         .map(service => ({
             ...service,
-            version: service.api.versions[0]
+            version: service.api.versions[0],
+            appName: (service.api.alias && service.api.alias[0]) || service.appName
         })),
         loaded: true
     };
