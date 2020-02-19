@@ -33,16 +33,15 @@ const Detail = ({ loadApi, detail, match }) => {
     return (
         <React.Fragment>
             <PageHeader className="pf-m-light">
-                <PageHeaderTitle title={
+                <PageHeaderTitle title={ <React.Fragment>
+                    <Breadcrumb>
+                        <BreadcrumbItem><Link to="/">Overview</Link></BreadcrumbItem>
+                        <BreadcrumbItem isActive>
+                            { params.apiName }
+                        </BreadcrumbItem>
+                    </Breadcrumb>
                     <React.Fragment>
-                        <Breadcrumb>
-                            <BreadcrumbItem><Link to="/">Overview</Link></BreadcrumbItem>
-                            <BreadcrumbItem isActive>
-                                { params.apiName }
-                            </BreadcrumbItem>
-                        </Breadcrumb>
-                        <React.Fragment>
-                            { detail.loaded && !detail.error &&
+                        { detail.loaded && !detail.error &&
                                 <Level className="ins-c-docs__api-detail">
                                     <LevelItem className="ins-c-docs__api-detail-info">
                                         {
@@ -77,10 +76,9 @@ const Detail = ({ loadApi, detail, match }) => {
                                         </Split>
                                     </LevelItem>
                                 </Level> }
-                        </React.Fragment>
-
                     </React.Fragment>
-                } />
+
+                </React.Fragment> } />
             </PageHeader>
             <Main>
                 <React.Fragment>
@@ -135,7 +133,10 @@ const Detail = ({ loadApi, detail, match }) => {
 Detail.propTypes = {
     loadApi: PropTypes.func,
     detail: PropTypes.shape({
-        loaded: PropTypes.bool
+        loaded: PropTypes.bool,
+        spec: PropTypes.string,
+        error: PropTypes.bool,
+        latest: PropTypes.string
     }),
     match: PropTypes.shape({
         params: PropTypes.shape({

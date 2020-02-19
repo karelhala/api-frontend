@@ -86,8 +86,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                                     ...pageSettings,
                                     perPage
                                 })
-                            }}
-                        }
+                            }} }
                         { ...filter.length > 0 && { activeFiltersConfig: {
                             filters: [{
                                 name: filter
@@ -99,8 +98,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                                 });
                                 onChangeFilter('');
                             }
-                        }}
-                        }
+                        }} }
                     />
                     {
                         services.loaded ?
@@ -166,7 +164,10 @@ Overview.propTypes = {
         loaded: PropTypes.bool,
         selectedRows: PropTypes.shape({
             isSelected: PropTypes.bool
-        })
+        }),
+        endpoints: PropTypes.arrayOf(PropTypes.shape({
+            [PropTypes.string]: PropTypes.oneOfType([ PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.node ])
+        }))
     }),
     history: PropTypes.shape({
         push: PropTypes.func
