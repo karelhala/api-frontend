@@ -1,5 +1,3 @@
-/*global module, process*/
-
 // This is a sample configuration for running the starter app locally.
 
 // Hack so that Mac OSX docker can sub in host.docker.internal instead of localhost
