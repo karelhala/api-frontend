@@ -24,7 +24,7 @@ export const columns = [
     { title: 'Download', transforms: [ cellWidth(10) ]}
 ];
 
-export const rowMapper = (title, appName, version, selectedRows = []) => ({
+export const rowMapper = (title, appName, version, selectedRows = [], apiName) => ({
     selected: selectedRows[appName] && selectedRows[appName].isSelected,
     cells: [
         {
@@ -34,13 +34,13 @@ export const rowMapper = (title, appName, version, selectedRows = []) => ({
                 'data-position': 'title'
             }
         },
-        `/api/${appName}`,
+        `/api/${apiName}`,
         {
             title: <Badge>{ version }</Badge>,
             value: version
         },
         {
-            title: <Button variant="plain" onClick={ () => downloadFile(appName, version) }> <ExportIcon /> </Button>
+            title: <Button variant="plain" onClick={ () => downloadFile(apiName, version) }> <ExportIcon /> </Button>
         }
     ]});
 
@@ -88,7 +88,9 @@ export function buildRows(sortBy, { page, perPage }, rows, selectedRows) {
                 sortBy.direction === SortByDirection.desc)
         )
         .slice((page - 1) * perPage, page * perPage)
-        .map(({ frontend, title, appName, version }) => rowMapper((frontend && frontend.title) || title, appName, version, selectedRows));
+        .map(({ frontend, title, appName, version, apiName }) => (
+            rowMapper((frontend && frontend.title) || title, appName, version, selectedRows, apiName || appName))
+        );
     }
 
     return emptyTable;
@@ -113,9 +115,9 @@ export function multiDownload(selectedRows = {}, onError) {
     const zip = new JSZip();
     const allFiles = Object.values(selectedRows || {})
     .filter(({ isSelected }) => isSelected)
-    .map(async ({ appName, version }) => {
+    .map(async ({ appName, version, apiName }) => {
         try {
-            return await oneApi({ name: appName, version });
+            return await oneApi({ name: apiName || appName, version });
         } catch (e) {
             onError(e);
         }
