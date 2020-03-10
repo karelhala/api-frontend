@@ -22,7 +22,8 @@ function dataLoaded(state, { payload }) {
         .map(service => ({
             ...service,
             version: service.api.versions[0],
-            appName: (service.api.alias && service.api.alias[0]) || service.appName
+            appName: (service.api.alias && service.api.alias[0]) || service.appName,
+            apiName: service.api.apiName
         })),
         loaded: true
     };
