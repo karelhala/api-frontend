@@ -29,7 +29,7 @@ export const rowMapper = (title, appName, version, selectedRows = [], apiName) =
     cells: [
         {
             title,
-            value: appName,
+            value: apiName,
             props: {
                 'data-position': 'title'
             }
