@@ -29,6 +29,7 @@ const Detail = ({ loadApi, detail, match }) => {
     useEffect(() => {
         loadApi(params.apiName);
     }, []);
+
     const [ isOpen, onModalToggle ] = useState(false);
     return (
         <React.Fragment>
@@ -124,7 +125,11 @@ const Detail = ({ loadApi, detail, match }) => {
                     </Button>
                 ] }
             >
-                <ReactJson src={ detail.spec } />
+                <ReactJson
+                    displayDataTypes={ false }
+                    shouldCollapse={ ({ name }) => name !== 'root' && name !== 'paths' }
+                    src={ detail.spec }
+                />
             </Modal>
         </React.Fragment>
     );
