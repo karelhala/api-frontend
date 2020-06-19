@@ -28,7 +28,7 @@ export const oneApi = ({ name, version = 'v1' }) => {
         name,
         servers: [
             ...data.servers || [],
-            { url: `/api/${name}/${version}` }
+            { url: `/api/${name}/${versionMapper[name] || version}` }
         ].filter((server, key, array) => array.findIndex(({ url }) => server.url.indexOf(url) === 0) === key)
         .map(server => ({
             ...server,
