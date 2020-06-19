@@ -1,5 +1,6 @@
 import { applyReducerHash } from '@redhat-cloud-services/frontend-components-utilities/files/ReducerRegistry';
 import * as ACTIONS from './actionTypes';
+import { versionMapper } from '../api/constants';
 
 const defaultState = { loaded: false, selectedRows: {}};
 const disabledApis = [
@@ -7,9 +8,10 @@ const disabledApis = [
     'aiops-insights-clustering',
     'openshift',
     'ruledev',
-    'migration-analytics',
     'subscriptions'
 ];
+
+const getAppName = (service) => (service.api.alias && service.api.alias[0]) || service.appName;
 
 function dataLoaded(state, { payload }) {
     return {
@@ -21,8 +23,8 @@ function dataLoaded(state, { payload }) {
         )
         .map(service => ({
             ...service,
-            version: service.api.versions[0],
-            appName: (service.api.alias && service.api.alias[0]) || service.appName,
+            version: versionMapper[getAppName(service)] || service.api.versions[0],
+            appName: getAppName(service),
             apiName: service.api.apiName
         })),
         loaded: true
