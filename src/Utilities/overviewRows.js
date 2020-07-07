@@ -25,7 +25,7 @@ export const columns = [
 ];
 
 export const rowMapper = (title, appName, version, selectedRows = [], apiName) => ({
-    selected: selectedRows[appName] && selectedRows[appName].isSelected,
+    selected: selectedRows?.[apiName || appName]?.isSelected,
     cells: [
         {
             title,

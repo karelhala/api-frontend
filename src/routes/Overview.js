@@ -111,6 +111,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                                 rows={ rows }
                                 { ...(filtered || services.endpoints).length > 0 && ({
                                     onSelect: (_e, isSelected, rowKey) => {
+                                        console.log(rowKey, 'fff');
                                         if (rowKey === -1) {
                                             selectRow(isSelected, rows);
                                         } else {
