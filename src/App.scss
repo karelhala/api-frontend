@@ -25,6 +25,9 @@
     }
 }
 .ins-c-docs__api-detail .ins-c-docs__api-detail-info {
+    &.pf-l-split__item {
+        .pf-c-content:first-child { margin: var(--pf-global--spacer--sm) }
+    }
     min-width: 100px;
     a {
         vertical-align: text-top;

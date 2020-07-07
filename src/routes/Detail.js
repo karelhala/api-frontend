@@ -19,7 +19,9 @@ import {
     LevelItem,
     ButtonVariant,
     Split,
-    SplitItem
+    SplitItem,
+    TextContent,
+    Text
 } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import ReactJson from 'react-json-view';
@@ -54,13 +56,16 @@ const Detail = ({ loadApi, detail, match }) => {
                                         <Split gutter="sm">
                                             <SplitItem className="ins-c-docs__api-detail-info">
                                                 {
-                                                    detail.loaded && !detail.error ? <a
-                                                        href={ `${location.origin}${detail.latest}` }
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        Open Raw <ExternalLinkAltIcon size="sm" />
-                                                    </a> :
+                                                    detail.loaded && !detail.error ? <TextContent>
+                                                        <Text
+                                                            component="a"
+                                                            href={ `${location.origin}${detail.latest}` }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                    Open Raw <ExternalLinkAltIcon size="sm" />
+                                                        </Text>
+                                                    </TextContent> :
                                                         <Skeleton size={ SkeletonSize.mdmd } />
                                                 }
                                             </SplitItem>
