@@ -9,6 +9,10 @@ import {
     TableToolbar,
     PrimaryToolbar
 } from '@redhat-cloud-services/frontend-components';
+import {
+    TreeRowWrapper,
+    sizeCalculator
+} from '@redhat-cloud-services/frontend-components/components/TreeTable';
 import { Pagination } from '@patternfly/react-core';
 import { Table, TableHeader, TableBody, TableVariant } from '@patternfly/react-table';
 import { connect } from 'react-redux';
@@ -27,6 +31,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
     useEffect(() => {
         loadApis();
     }, []);
+    const [ openedRows, setOpenedRows ] = useState([]);
     const [ sortBy, onSortBy ] = useState({});
     const [ pageSettings, onPaginate ] = useState({
         perPage: 50,
@@ -35,8 +40,19 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
     const [ filter, onChangeFilter ] = useState('');
     const filtered = filter && services.endpoints.filter(row => filterRows(row, filter));
     const rows = services.loaded ?
-        buildRows(sortBy, pageSettings, filtered || services.endpoints, services.selectedRows) :
+        buildRows(sortBy, pageSettings, filtered || services.endpoints, services.selectedRows, openedRows) :
         [];
+    const onSetRows = (_e, { title }) => {
+        if (openedRows.includes(title)) {
+            setOpenedRows(() => openedRows.filter((opened) => opened !== title));
+        } else {
+            setOpenedRows(() => [
+                ...openedRows,
+                title
+            ]);
+        }
+    };
+
     return (
         <React.Fragment>
             <PageHeader className="pf-m-light">
@@ -103,12 +119,14 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                     {
                         services.loaded ?
                             <Table
+                                className="pf-m-expandable pf-c-treeview"
                                 aria-label="Sortable Table"
                                 variant={ TableVariant.compact }
                                 sortBy={ sortBy }
                                 onSort={ (_e, index, direction) => onSortBy({ index, direction }) }
-                                cells={ columns }
-                                rows={ rows }
+                                cells={ columns(onSetRows) }
+                                rows={ sizeCalculator(rows) }
+                                rowWrapper={ TreeRowWrapper }
                                 { ...(filtered || services.endpoints).length > 0 && ({
                                     onSelect: (_e, isSelected, rowKey) => {
                                         if (rowKey === -1) {
@@ -121,7 +139,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                             >
                                 <TableHeader />
                                 <TableBody onRowClick={ (event, data) => {
-                                    if (event.target.getAttribute('data-position') === 'title') {
+                                    if (!data.noDetail && event.target.getAttribute('data-position') === 'title') {
                                         history.push(`/${data.cells[0].value.replace('/api/', '')}`);
                                     } else if (!event.target.matches('input')) {
                                         selectRow(!data.selected, data);

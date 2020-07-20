@@ -23,7 +23,7 @@ function dataLoaded(state, { payload }) {
         )
         .map(service => ({
             ...service,
-            version: versionMapper[getAppName(service)] || service.api.versions[0],
+            version: versionMapper[getAppName(service)] || service?.api?.versions?.[0],
             appName: getAppName(service),
             apiName: service.api.apiName
         })),
