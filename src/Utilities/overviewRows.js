@@ -14,11 +14,17 @@ import { ExportIcon } from '@patternfly/react-icons';
 import { oneApi } from '../api';
 import fileDownload from 'js-file-download';
 import JSZip from 'jszip';
+import flatten from 'lodash/flatten';
+import { treeTable } from '@redhat-cloud-services/frontend-components/components/TreeTable';
 
 const indexToKey = [ 'title', 'appName', 'version' ];
 
-export const columns = [
-    { title: 'Application name', transforms: [ sortable ]},
+export const columns = (onSetRows) => [
+    {
+        title: 'Application name',
+        transforms: [ sortable ],
+        cellTransforms: [ treeTable(onSetRows) ]
+    },
     { title: 'API endpoint', transforms: [ sortable ]},
     { title: 'API version', transforms: [ sortable, cellWidth(10) ]},
     { title: 'Download', transforms: [ cellWidth(10) ]}
@@ -78,19 +84,29 @@ export function sortRows(curr, next, key, isDesc) {
     return 0;
 }
 
-export function buildRows(sortBy, { page, perPage }, rows, selectedRows) {
+export function buildRows(sortBy, { page, perPage }, rows, selectedRows, openedRows) {
     if (rows.length > 0) {
-        return rows.sort((curr, next) =>
+        return flatten(rows.sort((curr, next) =>
             sortRows(
                 curr,
                 next,
                 indexToKey[sortBy.index],
                 sortBy.direction === SortByDirection.desc)
         )
-        .slice((page - 1) * perPage, page * perPage)
-        .map(({ frontend, title, appName, version, apiName }) => (
-            rowMapper((frontend && frontend.title) || title, appName, version, selectedRows, apiName || appName))
-        );
+        .slice((page - 1) * perPage, page * perPage).map(({ frontend, title, appName, version, apiName, api }, index) => ([
+            {
+                ...rowMapper((frontend && frontend.title) || title, appName, version, selectedRows, apiName || appName),
+                ...api.subItems && {
+                    isTreeOpen: openedRows?.includes?.((frontend && frontend.title) || title)
+                },
+                noDetail: !version
+            },
+            ...api.subItems ? Object.entries(api.subItems).map(([ key, { title, version }]) => ({
+                ...rowMapper(title, title, version?.[0], [], key),
+                treeParent: index
+            })) : []
+        ])
+        ));
     }
 
     return emptyTable;
