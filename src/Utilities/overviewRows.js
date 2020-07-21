@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import {
     Badge,
     Bullseye,
@@ -8,6 +8,7 @@ import {
     EmptyStateBody,
     EmptyStateVariant
 } from '@patternfly/react-core';
+import { Link } from 'react-router-dom';
 import { sortable, SortByDirection, cellWidth } from '@patternfly/react-table';
 import { EmptyTable } from '@redhat-cloud-services/frontend-components';
 import { ExportIcon } from '@patternfly/react-icons';
@@ -31,12 +32,15 @@ export const columns = (onSetRows) => [
 ];
 
 export const rowMapper = (title, appName, version, selectedRows = [], apiName) => ({
-    selected: selectedRows?.[apiName || appName]?.isSelected,
+    selected: selectedRows?.[appName]?.isSelected,
     cells: [
         {
-            title,
+            title: <Fragment>
+                { version ? <Link to={ `/${apiName}` }>{ title }</Link> : title }
+            </Fragment>,
             value: apiName,
             props: {
+                value: title,
                 'data-position': 'title'
             }
         },
@@ -48,7 +52,8 @@ export const rowMapper = (title, appName, version, selectedRows = [], apiName) =
         {
             title: <Button variant="plain" onClick={ () => downloadFile(apiName, version) }> <ExportIcon /> </Button>
         }
-    ]});
+    ]}
+);
 
 export const emptyTable = [{
     cells: [{
@@ -96,19 +101,20 @@ export function buildRows(sortBy, { page, perPage }, rows, selectedRows, openedR
         .slice((page - 1) * perPage, page * perPage).map(({ frontend, title, appName, version, apiName, api }, index) => ([
             {
                 ...rowMapper(
-                    (frontend && frontend.title) || title,
-                    appName,
+                    api.subItems ? title : (frontend && frontend.title) || title,
+                    `${api.subItems ? 'parent-' : ''}${apiName || appName}`,
                     version,
                     selectedRows,
                     apiName || appName
                 ),
                 ...api.subItems && {
-                    isTreeOpen: openedRows?.includes?.((frontend && frontend.title) || title)
+                    isTreeOpen: openedRows?.includes?.(title),
+                    subItems: api.subItems
                 },
                 noDetail: !version
             },
-            ...api.subItems ? Object.entries(api.subItems).map(([ key, { title, versions }]) => ({
-                ...rowMapper(title, title, versions?.[0], [], key),
+            ...api.subItems ? Object.entries(api.subItems).map(([ key, { title, versions, apiName }]) => ({
+                ...rowMapper(title, apiName || key, versions?.[0], selectedRows, apiName || key),
                 treeParent: index
             })) : []
         ])
@@ -135,17 +141,22 @@ export function downloadFile(appName, appVersion) {
 
 export function multiDownload(selectedRows = {}, onError) {
     const zip = new JSZip();
-    const allFiles = Object.values(selectedRows || {})
+    const allFiles = Object.values(selectedRows)
     .filter(({ isSelected }) => isSelected)
-    .map(async ({ appName, version, apiName }) => {
-        try {
-            return await oneApi({ name: apiName || appName, version });
-        } catch (e) {
-            onError(e);
+    .map(({ appName, version, apiName, subItems }) => {
+        if (subItems) {
+            return Object.entries(subItems)
+            .map(([ key, { versions }]) => (
+                oneApi({ name: key, version: versions[0] })
+                .catch(() => onError(`API ${key} with version ${versions[0]} not found or broken.`))
+            ));
+        } else {
+            return oneApi({ name: apiName || appName, version })
+            .catch(() => onError(`API ${apiName || appName} with version ${version} not found or broken.`));
         }
     });
 
-    Promise.all(allFiles).then(files => {
+    Promise.all(flatten(allFiles)).then(files => {
         if (files && files.length > 1) {
             files.map(({ name, ...file } = {}) => {
                 if (name) {
