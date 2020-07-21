@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router';
 import {
     PageHeader,
     PageHeaderTitle,
@@ -9,12 +8,16 @@ import {
     TableToolbar,
     PrimaryToolbar
 } from '@redhat-cloud-services/frontend-components';
+import {
+    TreeRowWrapper,
+    sizeCalculator
+} from '@redhat-cloud-services/frontend-components/components/TreeTable';
 import { Pagination } from '@patternfly/react-core';
 import { Table, TableHeader, TableBody, TableVariant } from '@patternfly/react-table';
 import { connect } from 'react-redux';
 import { onLoadApis, onSelectRow } from '../store/actions';
 import { filterRows, buildRows, columns, multiDownload } from '../Utilities/overviewRows';
-import { addNotification } from '@redhat-cloud-services/frontend-components-notifications';
+import { addNotification } from '@redhat-cloud-services/frontend-components-notifications/cjs/actions';
 
 const isNotSelected = ({ selectedRows }) => {
     return !selectedRows ||
@@ -23,10 +26,11 @@ const isNotSelected = ({ selectedRows }) => {
         .filter(Boolean).length === 0;
 };
 
-const Overview = ({ loadApis, services, history, selectRow, onError }) => {
+const Overview = ({ loadApis, services, selectRow, onError }) => {
     useEffect(() => {
         loadApis();
     }, []);
+    const [ openedRows, setOpenedRows ] = useState([]);
     const [ sortBy, onSortBy ] = useState({});
     const [ pageSettings, onPaginate ] = useState({
         perPage: 50,
@@ -35,8 +39,19 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
     const [ filter, onChangeFilter ] = useState('');
     const filtered = filter && services.endpoints.filter(row => filterRows(row, filter));
     const rows = services.loaded ?
-        buildRows(sortBy, pageSettings, filtered || services.endpoints, services.selectedRows) :
+        buildRows(sortBy, pageSettings, filtered || services.endpoints, services.selectedRows, openedRows) :
         [];
+    const onSetRows = (_e, { props: { value }}) => {
+        if (openedRows.includes(value)) {
+            setOpenedRows(() => openedRows.filter((opened) => opened !== value));
+        } else {
+            setOpenedRows(() => [
+                ...openedRows,
+                value
+            ]);
+        }
+    };
+
     return (
         <React.Fragment>
             <PageHeader className="pf-m-light">
@@ -103,12 +118,14 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                     {
                         services.loaded ?
                             <Table
+                                className="pf-m-expandable pf-c-treeview"
                                 aria-label="Sortable Table"
                                 variant={ TableVariant.compact }
                                 sortBy={ sortBy }
                                 onSort={ (_e, index, direction) => onSortBy({ index, direction }) }
-                                cells={ columns }
-                                rows={ rows }
+                                cells={ columns(onSetRows) }
+                                rows={ sizeCalculator(rows) }
+                                rowWrapper={ TreeRowWrapper }
                                 { ...(filtered || services.endpoints).length > 0 && ({
                                     onSelect: (_e, isSelected, rowKey) => {
                                         if (rowKey === -1) {
@@ -120,13 +137,7 @@ const Overview = ({ loadApis, services, history, selectRow, onError }) => {
                                 }) }
                             >
                                 <TableHeader />
-                                <TableBody onRowClick={ (event, data) => {
-                                    if (event.target.getAttribute('data-position') === 'title') {
-                                        history.push(`/${data.cells[0].value.replace('/api/', '')}`);
-                                    } else if (!event.target.matches('input')) {
-                                        selectRow(!data.selected, data);
-                                    }
-                                } }/>
+                                <TableBody />
                             </Table> :
                             <SkeletonTable columns={ columns } rowSize={ 28 } />
                     }
@@ -184,7 +195,7 @@ Overview.defaultProps = {
     }
 };
 
-export default withRouter(connect(({ services }) => ({
+export default connect(({ services }) => ({
     services
 }), (dispatch) => ({
     loadApis: () => dispatch(onLoadApis()),
@@ -195,4 +206,4 @@ export default withRouter(connect(({ services }) => ({
         description: error,
         dismissable: true
     }))
-}))(Overview));
+}))(Overview);

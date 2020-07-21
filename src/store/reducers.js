@@ -23,7 +23,7 @@ function dataLoaded(state, { payload }) {
         )
         .map(service => ({
             ...service,
-            version: versionMapper[getAppName(service)] || service.api.versions[0],
+            version: versionMapper[getAppName(service)] || service?.api?.versions?.[0],
             appName: getAppName(service),
             apiName: service.api.apiName
         })),
@@ -45,19 +45,26 @@ function onSelectRow(state, { payload: { isSelected, row }}) {
         ...state.selectedRows || {},
         ...Array.isArray(row) ? row.reduce((acc, curr) => ({
             ...acc,
-            [curr.cells[0].value]: {
+            [`${row.subItems ? 'parent-' : ''}${curr.cells[0].value}`]: {
                 isSelected,
                 appName: curr.cells[0].value,
-                version: curr.cells[2].value
+                version: curr.cells[2].value,
+                ...curr.subItems && {
+                    subItems: curr.subItems
+                }
             }
         }), {}) : {
-            [row.cells[0].value]: {
+            [`${row.subItems ? 'parent-' : ''}${row.cells[0].value}`]: {
                 isSelected,
                 appName: row.cells[0].value,
-                version: row.cells[2].value
+                version: row.cells[2].value,
+                ...row.subItems && {
+                    subItems: row.subItems
+                }
             }
         }
     };
+
     return {
         ...state,
         selectedRows
