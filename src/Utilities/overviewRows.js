@@ -101,14 +101,14 @@ export function buildRows(sortBy, { page, perPage }, rows, selectedRows, openedR
         .slice((page - 1) * perPage, page * perPage).map(({ frontend, title, appName, version, apiName, api }, index) => ([
             {
                 ...rowMapper(
-                    api.subItems ? title : (frontend && frontend.title) || title,
+                    (frontend && frontend.title) || title,
                     `${api.subItems ? 'parent-' : ''}${apiName || appName}`,
                     version,
                     selectedRows,
                     apiName || appName
                 ),
                 ...api.subItems && {
-                    isTreeOpen: openedRows?.includes?.(title),
+                    isTreeOpen: openedRows?.includes?.((frontend && frontend.title) || title),
                     subItems: api.subItems
                 },
                 noDetail: !version
