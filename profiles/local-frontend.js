@@ -7,7 +7,7 @@ const routes = {};
 
 routes[`/beta/${SECTION}/${APP_ID}`] = { host: `http://localhost:${FRONTEND_PORT}` };
 routes[`/${SECTION}/${APP_ID}`]      = { host: `http://localhost:${FRONTEND_PORT}` };
-routes[`/beta/apps/${APP_ID}`]       = { host: `http://localhost:${FRONTEND_PORT}` };
-routes[`/apps/${APP_ID}`]            = { host: `http://localhost:${FRONTEND_PORT}` };
+routes[`/beta/apps/docs-api`]       = { host: `http://localhost:${FRONTEND_PORT}` };
+routes[`/apps/docs-api`]            = { host: `http://localhost:${FRONTEND_PORT}` };
 
 module.exports = { routes };
