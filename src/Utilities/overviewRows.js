@@ -113,9 +113,17 @@ export function buildRows(sortBy, { page, perPage }, rows, selectedRows, openedR
 }
 
 export function filterRows(row, filter) {
+    const restFilterValues = [
+        row.frontend?.title,
+        ...(row.frontend?.paths || []),
+        // eslint-disable-next-line camelcase
+        ...(row.frontend?.sub_apps?.reduce((acc, curr) => [ ...acc, curr.title, curr.id ], []) || []),
+        row.api?.apiName
+    ].filter(Boolean);
     return indexToKey.some(key => row[key] &&
         row[key].toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) !== -1
-    );
+    ) ||
+    restFilterValues.some(value => value.toLocaleLowerCase().indexOf(filter.toLocaleLowerCase()) !== -1);
 }
 
 export function downloadFile(appName, appVersion) {
