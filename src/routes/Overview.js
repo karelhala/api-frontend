@@ -79,12 +79,12 @@ const Overview = ({ loadApis, services, selectRow, onError }) => {
             filterConfig={{
               items: [
                 {
-                  label: 'Filter by text',
+                  label: 'Filter by application name',
                   type: 'text',
                   filterValues: {
                     id: 'filter-by-string',
                     key: 'filter-by-string',
-                    placeholder: 'Filter by text',
+                    placeholder: 'Filter by application name',
                     value: filter,
                     onChange: (_e, value) => {
                       onPaginate({
@@ -101,7 +101,7 @@ const Overview = ({ loadApis, services, selectRow, onError }) => {
             actionsConfig={{
               actions: [
                 {
-                  label: 'Download Selected',
+                  label: 'Download selected',
                   props: {
                     isDisabled: isNotSelected(services),
                     onClick: () =>

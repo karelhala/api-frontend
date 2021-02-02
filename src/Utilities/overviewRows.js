@@ -9,7 +9,12 @@ import {
   EmptyStateVariant,
 } from '@patternfly/react-core';
 import { Link } from 'react-router-dom';
-import { sortable, SortByDirection, cellWidth } from '@patternfly/react-table';
+import {
+  cellWidth,
+  nowrap,
+  sortable,
+  SortByDirection,
+} from '@patternfly/react-table';
 import { EmptyTable } from '@redhat-cloud-services/frontend-components';
 import { ExportIcon } from '@patternfly/react-icons';
 import { oneApi } from '../api';
@@ -26,8 +31,8 @@ export const columns = (onSetRows) => [
     transforms: [sortable],
     cellTransforms: [treeTable(onSetRows)],
   },
-  { title: 'API endpoint', transforms: [sortable] },
-  { title: 'API version', transforms: [sortable, cellWidth(10)] },
+  { title: 'API endpoint', transforms: [nowrap, sortable, cellWidth(10)] },
+  { title: 'API version', transforms: [nowrap, sortable, cellWidth(10)] },
   { title: 'Download', transforms: [cellWidth(10)] },
 ];
 
@@ -88,7 +93,7 @@ export const emptyTable = [
           </EmptyTable>
         ),
         props: {
-          colSpan: columns.length,
+          colSpan: 4,
         },
       },
     ],
