@@ -19,6 +19,13 @@
     .ins-c-docs__api-overview-toolbar {
         width: 100%;
     }
+    .ins-c-conditional-filter 
+      input.ins-c-conditional-filter[type="text"]  {
+        min-width: 238px;
+    }
+    .pf-c-empty-state {
+        padding-left: 0;
+    }
 }
 .ins-c-docs__api-detail .ins-c-docs__api-detail-info {
     &.pf-l-split__item {
