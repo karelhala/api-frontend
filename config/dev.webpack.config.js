@@ -11,6 +11,7 @@ const modulesConfig = require('@redhat-cloud-services/frontend-components-config
   {
     root: resolve(__dirname, '../'),
     moduleName: 'apiDocs',
+    useFileHash: false,
   }
 );
 
