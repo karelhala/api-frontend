@@ -48,7 +48,13 @@ export const rowMapper = (
     {
       title: (
         <Fragment>
-          {version ? <Link to={`/${apiName}`}>{title}</Link> : title}
+          {version ? (
+            <Link to={`/${apiName}${version !== 'v1' ? `/${version}` : ''}`}>
+              {title}
+            </Link>
+          ) : (
+            title
+          )}
         </Fragment>
       ),
       value: title,

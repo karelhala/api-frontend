@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, withRouter } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   PageHeader,
   PageHeaderTitle,
@@ -30,13 +30,14 @@ import {
   TextContent,
   Text,
 } from '@patternfly/react-core';
+import { useParams } from 'react-router-dom';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import ReactJson from 'react-json-view';
 
-const Detail = ({ loadApi, detail, match }) => {
-  const { params } = match;
+const Detail = ({ loadApi, detail }) => {
+  const { apiName, version = 'v1' } = useParams();
   useEffect(() => {
-    loadApi(params.apiName);
+    loadApi(apiName, version);
   }, []);
 
   const [isOpen, onModalToggle] = useState(false);
@@ -50,7 +51,7 @@ const Detail = ({ loadApi, detail, match }) => {
                 <BreadcrumbItem>
                   <Link to="/">Overview</Link>
                 </BreadcrumbItem>
-                <BreadcrumbItem isActive>{params.apiName}</BreadcrumbItem>
+                <BreadcrumbItem isActive>{apiName}</BreadcrumbItem>
               </Breadcrumb>
               <React.Fragment>
                 {detail.loaded && !detail.error && (
@@ -183,11 +184,6 @@ Detail.propTypes = {
     error: PropTypes.bool,
     latest: PropTypes.string,
   }),
-  match: PropTypes.shape({
-    params: PropTypes.shape({
-      apiName: PropTypes.string,
-    }),
-  }),
 };
 Detail.defaultProps = {
   loadApi: () => undefined,
@@ -196,13 +192,11 @@ Detail.defaultProps = {
   },
 };
 
-export default withRouter(
-  connect(
-    ({ detail }) => ({
-      detail,
-    }),
-    (dispatch) => ({
-      loadApi: (api) => dispatch(onLoadOneApi({ name: api, version: 'v1' })),
-    })
-  )(Detail)
-);
+export default connect(
+  ({ detail }) => ({
+    detail,
+  }),
+  (dispatch) => ({
+    loadApi: (api, version) => dispatch(onLoadOneApi({ name: api, version })),
+  })
+)(Detail);

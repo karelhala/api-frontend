@@ -11,6 +11,7 @@ const Detail = lazy(() =>
 const paths = {
   overview: '/',
   detail: '/:apiName',
+  detailVersioned: '/:apiName/:version',
 };
 
 export const Routes = () => {
@@ -19,6 +20,7 @@ export const Routes = () => {
       <Switch>
         <Route exact path={paths.overview} component={Overview} />
         <Route exact path={paths.detail} component={Detail} />
+        <Route exact path={paths.detailVersioned} component={Detail} />
         <Route component={Overview} />
       </Switch>
     </Suspense>
