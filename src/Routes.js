@@ -1,5 +1,4 @@
 import { Route, Switch } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import React, { lazy, Suspense, Fragment } from 'react';
 const Overview = lazy(() =>
   import(/* webpackChunkName: "Overview" */ './routes/Overview')
@@ -25,12 +24,4 @@ export const Routes = () => {
       </Switch>
     </Suspense>
   );
-};
-
-Routes.propTypes = {
-  childProps: PropTypes.shape({
-    location: PropTypes.shape({
-      pathname: PropTypes.string,
-    }),
-  }),
 };
