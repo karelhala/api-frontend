@@ -1,3 +1,4 @@
+import { createContext } from 'react';
 import ReducerRegistry from '@redhat-cloud-services/frontend-components-utilities/files/ReducerRegistry';
 import {
   notifications,
@@ -5,14 +6,13 @@ import {
 } from '@redhat-cloud-services/frontend-components-notifications';
 import promiseMiddleware from 'redux-promise-middleware';
 import { services, detail } from './reducers';
-let registry;
+
+export const RegistryContext = createContext({
+  getRegistry: () => {},
+});
 
 export function init(...middleware) {
-  if (registry) {
-    throw new Error('store already initialized');
-  }
-
-  registry = new ReducerRegistry({}, [
+  const registry = new ReducerRegistry({}, [
     promiseMiddleware,
     notificationsMiddleware({
       errorDescriptionKey: ['detail', 'stack'],
@@ -29,12 +29,4 @@ export function init(...middleware) {
    *  });
    */
   return registry;
-}
-
-export function getStore() {
-  return registry.getStore();
-}
-
-export function register(...args) {
-  return registry.register(...args);
 }
