@@ -12,7 +12,11 @@ export const generateUrl = (appName, appVersion) =>
 
 export const activeApi = () =>
   instance
-    .get(`${insights.chrome.isBeta() ? '/beta' : ''}/config/main.yml`)
+    .get(
+      `/api/chrome-service/v1/static${insights.chrome.isBeta() ? '/beta' : ''}${
+        insights.chrome.isProd() ? '/prod' : '/stage'
+      }/main.yml`
+    )
     .then((data) => load(data))
     .then((data) => ({
       services: Object.keys(data)
